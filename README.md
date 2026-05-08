@@ -1,7 +1,7 @@
-# Data_Automation
+# 3_Data_Automation
 Pipeline d'automatisation de monitoring de stocks : extraction via Google Sheets API, analyse de données avec Pandas et alertes en temps réel sur Slack.
 
-# 📦 Stock Automation
+## 📦 Stock Automation
 Ce projet automatise la surveillance des stocks pour un e-commerce en connectant Google Sheets, Python et Slack.
 
 ## 🛠️ Technologies utilisées
