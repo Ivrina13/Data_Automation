@@ -1,101 +1,91 @@
 import streamlit as st
 import pandas as pd
+import plotly.graph_objects as go
 import plotly.express as px
+import requests
+import json
 
-# Configuration pour un look moderne
-st.set_page_config(page_title="Data Automation", layout="wide", initial_sidebar_state="expanded")
+# --- CONFIG & STYLE ---
+st.set_page_config(page_title="Data Automation", layout="wide")
 
-# --- CHARGEMENT DES DONNÉES ---
+st.markdown("""
+    <style>
+    .stApp { background-color: #F8F9FA; }
+    div[data-testid="metric-container"] {
+        background-color: white; border: 1px solid #E0E0E0;
+        padding: 15px; border-radius: 8px;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+# --- FONCTION SLACK SÉCURISÉE ---
+def send_slack_alert(text):
+    try:
+        url = st.secrets["SLACK_WEBHOOK_URL"]
+        requests.post(url, json={"text": text})
+        return True
+    except: return False
+
+# --- CHARGEMENT ---
 @st.cache_data
 def load_data():
-    # Remplace par ton nom de fichier
     df = pd.read_csv('data.csv') 
     df['date_commande'] = pd.to_datetime(df['date_commande'])
     return df
 
-try:
-    df = load_data()
-except:
-    st.error("⚠️ Fichier CSV introuvable !")
-    st.stop()
+df = load_data()
 
-# --- STYLE CSS PERSONNALISÉ (Pour sortir du look standard) ---
-st.markdown("""
-    <style>
-    .main { background-color: #0e1117; }
-    .stMetric { background-color: #1e2130; padding: 15px; border-radius: 10px; border-left: 5px solid #7000FF; }
-    </style>
-    """, unsafe_allow_html=True)
-
-# --- BARRE LATÉRALE ---
+# --- SIDEBAR AUTOMATION ---
 st.sidebar.title("🤖 Data Automation")
-st.sidebar.caption("Pipeline & Monitoring")
-page = st.sidebar.radio("Menu Principal", ["Performance Business", "Audit & Intelligence"])
+if st.sidebar.button("🚀 Trigger Slack Report"):
+    if send_slack_alert("Rapport généré par un utilisateur externe."):
+        st.sidebar.success("Notification envoyée !")
+    else:
+        st.sidebar.warning("Secret non configuré.")
 
-st.sidebar.divider()
-selected_cat = st.sidebar.multiselect("Filtrer par Catégorie", options=df['nom_catégorie'].unique(), default=df['nom_catégorie'].unique())
+# --- DASHBOARD ---
+st.title("Business Intelligence Dashboard")
+st.caption("Pipeline automatisé • Données sécurisées")
 
-# Filtrage
-df_selection = df[df['nom_catégorie'].isin(selected_cat)]
+# Calculs
+ca = df['prix'].sum()
+qty = df['quantité'].sum()
+basket = ca / len(df)
+sat = df['note_avis'].mean()
+clients = df['identifiant_client'].nunique()
+loyalty = len(df) / clients
 
-# --- COULEURS PERSONNALISÉES ---
-# On part sur du Violet (#7000FF), du Rose/Fuchsia et du Safran (#FFD700)
-tech_colors = ['#7000FF', '#FF00E4', '#FFD700', '#00D4FF', '#FF4B4B']
+# LIGNE 1 : 6 KPIs
+c1, c2, c3, c4, c5, c6 = st.columns(6)
+c1.metric("Revenue", f"{ca/1000:.1f}K€")
+c2.metric("Orders", qty)
+c3.metric("Avg Basket", f"{basket:.1f}€")
+c4.metric("Customer Sat", f"{sat:.1f}/5")
+c5.metric("Unique ID", clients)
+c6.metric("Retention", f"{loyalty:.1f}")
 
-# --- PAGE 1 : PERFORMANCE ---
-if page == "📈 Performance Business":
-    st.title("⚡ Data Automation Dashboard")
-    st.write("Analyse des flux de revenus et volumes transactionnels.")
-    
-    # KPIs
-    ca_total = df_selection['prix'].sum()
-    ventes = df_selection['quantité'].sum()
-    panier_moyen = ca_total / len(df_selection) if len(df_selection) > 0 else 0
+st.divider()
 
-    col1, col2, col3 = st.columns(3)
-    col1.metric("Revenue Total", f"{ca_total:,.2f} €")
-    col2.metric("Transactions", f"{ventes}")
-    col3.metric("Average Basket", f"{panier_moyen:.2f} €")
+# LIGNE 2 : LES JAUGES (Targets)
+st.subheader("Target Progress")
+g1, g2, g3 = st.columns(3)
 
-    st.markdown("---")
+def create_gauge(name, val, target):
+    return go.Figure(go.Indicator(
+        mode="gauge+number", value=val,
+        title={'text': name, 'font': {'size': 18}},
+        gauge={'axis': {'range': [None, target]}, 'bar': {'color': "#20B2AA"}}
+    )).update_layout(height=220, margin=dict(l=20, r=20, t=40, b=20))
 
-    c1, c2 = st.columns([4, 6])
+g1.plotly_chart(create_gauge("Sales vs Goal", ca, 100000), use_container_width=True)
+g2.plotly_chart(create_gauge("Volume vs Goal", qty, 5000), use_container_width=True)
+g3.plotly_chart(create_gauge("Sat vs Goal", sat, 5), use_container_width=True)
 
-    # Donut avec couleurs Tech
-    fig_cat = px.pie(df_selection, values='prix', names='nom_catégorie', hole=0.7, 
-                     title="Segmentation du Chiffre d'Affaires",
-                     color_discrete_sequence=tech_colors)
-    fig_cat.update_layout(showlegend=False) # Plus propre sans légende
-    c1.plotly_chart(fig_cat, use_container_width=True)
-
-    # Courbe d'évolution - Ligne épaisse et colorée
-    sales_line = df_selection.groupby('date_commande')['prix'].sum().reset_index()
-    fig_line = px.line(sales_line, x='date_commande', y='prix', title="Trend des Ventes (Temps Réel)")
-    fig_line.update_traces(line=dict(color='#7000FF', width=4))
-    c2.plotly_chart(fig_line, use_container_width=True)
-
-# --- PAGE 2 : AUDIT ---
-else:
-    st.title("Audit & Customer Intelligence")
-    
-    col_a, col_b = st.columns(2)
-
-    # Top produits - Barres horizontales Safran
-    top_prod = df_selection.groupby('nom_produit')['quantité'].sum().sort_values(ascending=True).tail(10).reset_index()
-    fig_prod = px.bar(top_prod, x='quantité', y='nom_produit', orientation='h', 
-                      title="Analyse de la Demande Produits",
-                      color_discrete_sequence=['#FFD700'])
-    col_a.plotly_chart(fig_prod, use_container_width=True)
-
-    # Répartition par âge - Style Histogramme Tech
-    fig_age = px.histogram(df_selection, x="age", nbins=12, title="Analyse Démographique", 
-                           color_discrete_sequence=['#FF00E4'])
-    col_b.plotly_chart(fig_age, use_container_width=True)
-
-    st.markdown("---")
-    st.subheader("📑 Data Registry (Raw Data)")
-    st.dataframe(df_selection, use_container_width=True)
-
-# Footer signature
-st.sidebar.markdown("---")
-st.sidebar.write("✅ **Status: Automated**")
+# LIGNE 3 : TRENDS
+st.markdown("---")
+col_l, col_r = st.columns([7, 3])
+with col_l:
+    trend = df.groupby('date_commande')['prix'].sum().reset_index()
+    st.plotly_chart(px.area(trend, x='date_commande', y='prix', title="Revenue Stream", color_discrete_sequence=['#7FB3D5']), use_container_width=True)
+with col_r:
+    st.plotly_chart(px.pie(df, values='prix', names='nom_catégorie', hole=0.5, title="Category Mix"), use_container_width=True)
