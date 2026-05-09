@@ -103,10 +103,29 @@ loyalty = orders / clients if clients > 0 else 0
 st.title("📊 Business Monitoring Dashboard")
 st.markdown("🔗 [Mon GitHub](https://github.com/Ivrina13)")
 
-k1, k2, k3, k4, k5, k6 = st.columns(6)
-k1.metric("💰 Chiffre d'affaires", f"{ca:,.0f} €")
-k2.metric("🛒 Commandes",          f"{orders:,}")
-k3.metric("⭐ Satisfaction",       f"{sat:.2f} / 5" if not pd.isna(sat) else "—")
+kpis = [
+    ("💰", "Chiffre d'affaires", f"{ca:,.0f} €"),
+    ("🛒", "Commandes",          f"{orders:,}"),
+    ("⭐", "Satisfaction",       f"{sat:.2f} / 5" if not pd.isna(sat) else "—"),
+    ("🧾", "Panier moyen",       f"{basket:,.0f} €"),
+    ("👥", "Clients uniques",    f"{clients:,}"),
+    ("🔁", "Fidélité",           f"{loyalty:.2f} cmd/client"),
+]
+
+cols = st.columns(len(kpis))
+for col, (icon, label, value) in zip(cols, kpis):
+    col.markdown(f"""
+    <div style="
+        background-color: white;
+        border: 1px solid #DDE1E7;
+        border-radius: 14px;
+        padding: 16px 18px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    ">
+        <div style="font-size:12px; color:#6B7280; margin-bottom:6px;">{icon} {label}</div>
+        <div style="font-size:22px; font-weight:600; color:#111827;">{value}</div>
+    </div>
+    """, unsafe_allow_html=True)
 
 st.divider()
 
