@@ -39,13 +39,13 @@ def load_data():
 try:
     df = load_data()
 except Exception as e:
-    st.error(f"Erreur : Vérifie que le fichier est bien nommé 'Business_Monitoring - donnée brute.csv' sur GitHub.")
+    st.error(f"Erreur : Vérifie que le fichier est bien nommé 'data.csv' sur GitHub.")
     st.stop()
 
 # 4. Sidebar Automation
 st.sidebar.title("🤖 Automation")
 if st.sidebar.button("🔔 Send Status to Slack"):
-    if send_slack("Dashboard RSA consulté."):
+    if send_slack("Dashboard consulté."):
         st.sidebar.success("Alerte envoyée !")
     else: st.sidebar.warning("Webhook non configuré dans les Secrets.")
 
