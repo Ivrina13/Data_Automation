@@ -4,8 +4,8 @@ import plotly.graph_objects as go
 import plotly.express as px
 import requests
 
-# 1. Configuration et Style Business (Sobre)
-st.set_page_config(page_title="Data Automation", layout="wide")
+# 1. Look Pro & Sobres
+st.set_page_config(page_title="Data Automation RSA", layout="wide")
 
 st.markdown("""
     <style>
@@ -17,7 +17,7 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# 2. Fonction Slack Sécurisée (Secrets Streamlit)
+# 2. Sécurité Slack
 def send_slack(text):
     try:
         url = st.secrets["SLACK_WEBHOOK_URL"]
@@ -25,83 +25,86 @@ def send_slack(text):
         return True
     except: return False
 
-# 3. Chargement et Nettoyage de data.csv
+# 3. Chargement avec sécurité sur les noms de colonnes
 @st.cache_data
 def load_data():
-    # Chargement du fichier maintenant renommé
     df = pd.read_csv('data.csv')
+    # On nettoie le prix (enlève le € et gère la virgule)
+    if 'prix' in df.columns:
+        df['prix_clean'] = df['prix'].astype(str).str.replace(' €', '').str.replace(',', '.').astype(float)
+    else:
+        df['prix_clean'] = 0
     
-    # Nettoyage de la colonne prix (ex: "373,36 €" -> 373.36)
-    df['prix_clean'] = df['prix'].str.replace(' €', '').str.replace(',', '.').astype(float)
-    df['date_commande'] = pd.to_datetime(df['date_commande'], dayfirst=True)
+    # On force la date
+    df['date_commande'] = pd.to_datetime(df['date_commande'], dayfirst=True, errors='coerce')
+    
+    # On remplace les avis vides par 0 pour éviter le crash
+    if 'note_avis' in df.columns:
+        df['note_avis'] = pd.to_numeric(df['note_avis'], errors='coerce').fillna(0)
+    
     return df
 
 try:
     df = load_data()
 except Exception as e:
-    st.error(f"Erreur : Le fichier 'data.csv' est introuvable ou mal formé. Erreur : {e}")
+    st.error(f"Erreur de lecture du fichier : {e}")
     st.stop()
 
-# 4. Sidebar Automation
-st.sidebar.title("🤖 Data Automation")
-if st.sidebar.button("🚀 Envoyer Rapport Slack"):
-    if send_slack("Dashboard RSA : Le rapport de performance a été consulté."):
-        st.sidebar.success("Notification envoyée !")
-    else:
-        st.sidebar.warning("Lien Slack non configuré dans les Secrets.")
-
-# 5. Calcul des 6 KPIs Stratégiques
+# 4. Calculs avec sécurités (pour éviter les divisions par zéro)
 ca = df['prix_clean'].sum()
-nb_ventes = df['quantité'].sum()
-panier_moyen = ca / len(df) if len(df) > 0 else 0
-satisfaction = df['note_avis'].mean()
-clients_uniques = df['identifiant_client'].nunique()
-frequence = len(df) / clients_uniques if clients_uniques > 0 else 0
+qty = df['quantité'].sum() if 'quantité' in df.columns else 0
+basket = ca / len(df) if len(df) > 0 else 0
+sat = df['note_avis'].mean() if 'note_avis' in df.columns else 0
+clients = df['identifiant_client'].nunique() if 'identifiant_client' in df.columns else 0
+loyalty = len(df) / clients if clients > 0 else 0
 
-# --- AFFICHAGE DU DASHBOARD ---
-st.title("Business Monitoring Dashboard")
-st.caption("Système d'automatisation | Performance en temps réel")
+# 5. Dashboard
+st.title("📊 Business Automation Dashboard")
+st.caption("RSA Monitoring - Version Sécurisée")
 
-# Ligne 1 : Les 6 KPIs
+# Les 6 KPIs
 c1, c2, c3, c4, c5, c6 = st.columns(6)
-c1.metric("Revenue Total", f"{ca/1000:.1f}k €")
-c2.metric("Unités Vendues", nb_ventes)
-c3.metric("Panier Moyen", f"{panier_moyen:.2f} €")
-c4.metric("Satisfaction", f"{satisfaction:.1f}/5")
-c5.metric("Clients Uniques", clients_uniques)
-c6.metric("Fidélité", f"{frequence:.2f}")
+c1.metric("Revenue", f"{ca/1000:.1f}k€")
+c2.metric("Orders", int(qty))
+c3.metric("Avg Basket", f"{basket:.1f}€")
+c4.metric("Sat.", f"{sat:.1f}/5")
+c5.metric("Clients", clients)
+c6.metric("Loyalty", f"{loyalty:.1f}")
 
 st.divider()
 
-# Ligne 2 : Jauges de Performance
-st.subheader("Objectifs de Performance")
+# Les Jauges (Gauges)
+st.subheader("Performance vs Targets")
 g1, g2, g3, g4 = st.columns(4)
 
-def draw_gauge(title, value, target):
-    return go.Figure(go.Indicator(
-        mode="gauge+number", value=(value/target)*100,
+def draw_gauge(title, val, target):
+    fig = go.Figure(go.Indicator(
+        mode="gauge+number", value=(val/target)*100 if target > 0 else 0,
         number={'suffix': "%", 'font': {'size': 20}},
         title={'text': title, 'font': {'size': 14}},
-        gauge={'axis': {'range': [None, 100]}, 'bar': {'color': "#20B2AA"}, 'bgcolor': "white"}
-    )).update_layout(height=180, margin=dict(l=10, r=10, t=40, b=10), paper_bgcolor='rgba(0,0,0,0)')
+        gauge={'axis': {'range': [None, 100]}, 'bar': {'color': "#20B2AA"}}
+    ))
+    fig.update_layout(height=180, margin=dict(l=10, r=10, t=40, b=10), paper_bgcolor='rgba(0,0,0,0)')
+    return fig
 
-# Objectifs arbitraires
-g1.plotly_chart(draw_gauge("Objectif CA", ca, 500000), use_container_width=True)
-g2.plotly_chart(draw_gauge("Objectif Volume", nb_ventes, 5000), use_container_width=True)
-g3.plotly_chart(draw_gauge("Objectif Sat.", satisfaction, 5), use_container_width=True)
-g4.plotly_chart(draw_gauge("Objectif Fidélité", frequence, 2.5), use_container_width=True)
+g1.plotly_chart(draw_gauge("Sales Goal", ca, 500000), use_container_width=True)
+g2.plotly_chart(draw_gauge("Units Goal", qty, 5000), use_container_width=True)
+g3.plotly_chart(draw_gauge("Sat. Goal", sat, 5), use_container_width=True)
+g4.plotly_chart(draw_gauge("Loyalty Goal", loyalty, 2.5), use_container_width=True)
 
-# Ligne 3 : Graphiques Business
+# Graphs
 st.markdown("---")
-col_l, col_r = st.columns([7, 3])
-
-with col_l:
+l, r = st.columns([7, 3])
+with l:
     trend = df.groupby('date_commande')['prix_clean'].sum().reset_index()
-    fig_trend = px.area(trend, x='date_commande', y='prix_clean', title="Évolution des Ventes", color_discrete_sequence=['#20B2AA'])
-    fig_trend.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)')
-    st.plotly_chart(fig_trend, use_container_width=True)
+    st.plotly_chart(px.area(trend, x='date_commande', y='prix_clean', title="Sales Trend", color_discrete_sequence=['#20B2AA']), use_container_width=True)
+with r:
+    if 'nom_catégorie' in df.columns:
+        cat = df.groupby('nom_catégorie')['prix_clean'].sum().reset_index()
+        st.plotly_chart(px.bar(cat, x='prix_clean', y='nom_catégorie', orientation='h', title="By Category", color_discrete_sequence=['#7FB3D5']), use_container_width=True)
 
-with col_r:
-    cat_data = df.groupby('nom_catégorie')['prix_clean'].sum().reset_index()
-    fig_bar = px.bar(cat_data, x='prix_clean', y='nom_catégorie', orientation='h', title="Ventes par Catégorie", color_discrete_sequence=['#7FB3D5'])
-    st.plotly_chart(fig_bar, use_container_width=True)
+# Bouton Slack dans la Sidebar
+if st.sidebar.button("🚀 Push to Slack"):
+    if send_slack("Rapport généré avec succès."):
+        st.sidebar.success("OK !")
+    else: st.sidebar.warning("Webhook non configuré.")
