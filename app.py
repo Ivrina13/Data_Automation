@@ -19,6 +19,20 @@ div[data-testid="metric-container"] {
     border-radius: 8px;
     padding: 16px 20px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    min-width: 0;
+}
+div[data-testid="metric-container"] > div {
+    overflow: visible !important;
+    white-space: nowrap;
+}
+div[data-testid="stMetricValue"] {
+    font-size: 1.3rem !important;
+    overflow: visible !important;
+    white-space: nowrap !important;
+}
+div[data-testid="stMetricLabel"] {
+    font-size: 0.85rem !important;
+    white-space: nowrap !important;
 }
 </style>
 """, unsafe_allow_html=True)
