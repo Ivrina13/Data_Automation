@@ -92,10 +92,7 @@ st.caption(f"Source : data.csv · {orders:,} commandes affichées")
 k1, k2, k3, k4, k5, k6 = st.columns(6)
 k1.metric("💰 Chiffre d'affaires", f"{ca:,.0f} €")
 k2.metric("🛒 Commandes",          f"{orders:,}")
-k3.metric("🧾 Panier moyen",       f"{basket:,.2f} €")
-k4.metric("⭐ Satisfaction",       f"{sat:.2f} / 5" if not pd.isna(sat) else "—")
-k5.metric("👤 Clients uniques",    f"{clients:,}")
-k6.metric("🔁 Fidélité (cmd/cli)", f"{loyalty:.2f}")
+k3.metric("⭐ Satisfaction",       f"{sat:.2f} / 5" if not pd.isna(sat) else "—")
 
 st.divider()
 
