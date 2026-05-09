@@ -91,7 +91,27 @@ if len(date_range) == 2:
         (dff["date_commande"].dt.date >= date_range[0]) &
         (dff["date_commande"].dt.date <= date_range[1])
     ]
-
+    
+# ── Bouton Slack ──────────────────────────────────────────────────────────────
+st.sidebar.markdown("---")
+if st.sidebar.button("💬 Rejoindre notre Slack"):
+    st.sidebar.markdown("""
+    <div style="
+        background-color: white;
+        border: 1px solid #DDE1E7;
+        border-radius: 14px;
+        padding: 16px;
+        text-align: center;
+        margin-top: 8px;
+    ">
+        <div style="font-size: 32px; margin-bottom: 8px;">🔒</div>
+        <p style="font-size: 14px; font-weight: 600; color: #111827; margin: 0 0 6px;">Accès refusé</p>
+        <p style="font-size: 12px; color: #6B7280; margin: 0; line-height: 1.6;">
+            Ce Slack est privé.<br>Privé... mais si tu recrutes, on peut en parler. 😉
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+    
 # ── KPIs ──────────────────────────────────────────────────────────────────────
 ca      = dff["prix_clean"].sum()
 orders  = len(dff)
