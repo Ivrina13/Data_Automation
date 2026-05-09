@@ -16,7 +16,7 @@ st.markdown("""
 div[data-testid="metric-container"] {
     background-color: white;
     border: 1px solid #DDE1E7;
-    border-radius: 8px;
+    border-radius: 16px;
     padding: 16px 20px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.06);
     min-width: 0;
