@@ -9,7 +9,7 @@ st.set_page_config(page_title="Data Automation", layout="wide", initial_sidebar_
 @st.cache_data
 def load_data():
     # Remplace par ton nom de fichier
-    df = pd.read_csv('ton_fichier.csv') 
+    df = pd.read_csv('data.csv') 
     df['date_commande'] = pd.to_datetime(df['date_commande'])
     return df
 
