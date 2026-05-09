@@ -21,16 +21,6 @@ st.markdown("""
 def load_data():
     # Chargement du fichier
     df = pd.read_csv('data.csv')
-    
-    # Nettoyage automatique du prix (gère le '€' et la virgule)
-    if 'prix' in df.columns:
-        df['prix_clean'] = df['prix'].astype(str).str.replace(' €', '').str.replace(',', '.').astype(float)
-    
-    # Sécurité pour les dates
-    if 'date_commande' in df.columns:
-        df['date_commande'] = pd.to_datetime(df['date_commande'], dayfirst=True, errors='coerce')
-        
-    return df
 
 try:
     df = load_data()
