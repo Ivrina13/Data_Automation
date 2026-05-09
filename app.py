@@ -101,7 +101,7 @@ clients = dff["identifiant_client"].nunique()
 loyalty = orders / clients if clients > 0 else 0
 
 st.title("📊 Business Monitoring Dashboard")
-st.markdown("🔗 [Mon GitHub](https://github.com/Ivrina13)")
+st.markdown("🔗 [Voir mon GitHub](https://github.com/Ivrina13)")
 
 kpis = [
     ("💰", "Chiffre d'affaires", f"{ca:,.0f} €"),
@@ -109,7 +109,6 @@ kpis = [
     ("⭐", "Satisfaction",       f"{sat:.2f} / 5" if not pd.isna(sat) else "—"),
     ("🧾", "Panier moyen",       f"{basket:,.0f} €"),
     ("👥", "Clients uniques",    f"{clients:,}"),
-    ("🔁", "Fidélité",           f"{loyalty:.2f} cmd/client"),
 ]
 
 cols = st.columns(len(kpis))
