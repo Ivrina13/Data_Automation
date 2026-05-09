@@ -94,7 +94,7 @@ if len(date_range) == 2:
     
 # ── Bouton Slack ──────────────────────────────────────────────────────────────
 st.sidebar.markdown("---")
-if st.sidebar.button("💬 Rejoindre notre Slack"):
+if st.sidebar.button("🔔 Recevoir les notifications Slack"):
     st.sidebar.markdown("""
     <div style="
         background-color: white;
@@ -105,8 +105,8 @@ if st.sidebar.button("💬 Rejoindre notre Slack"):
         margin-top: 8px;
     ">
         <div style="font-size: 32px; margin-bottom: 8px;">🔒</div>
-        <p style="font-size: 14px; font-weight: 600; color: #111827; margin: 0 0 6px;">Accès refusé</p>
-        <p style="font-size: 12px; color: #6B7280; margin: 0; line-height: 1.6;">
+        <p style="font-size: 16px; font-weight: 600; color: #111827; margin: 0 0 6px;">Accès refusé</p>
+        <p style="font-size: 14px; color: #6B7280; margin: 0; line-height: 1.6;">
             Ce Slack est privé.<br>Privé... mais si tu recrutes, on peut en parler. 😉
         </p>
     </div>
