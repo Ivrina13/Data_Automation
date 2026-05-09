@@ -101,7 +101,7 @@ clients = dff["identifiant_client"].nunique()
 loyalty = orders / clients if clients > 0 else 0
 
 st.title("📊 Business Monitoring Dashboard")
-st.caption(f"Source : data.csv · {orders:,} commandes affichées")
+st.markdown("🔗 [Mon GitHub](https://github.com/Ivrina13)")
 
 k1, k2, k3, k4, k5, k6 = st.columns(6)
 k1.metric("💰 Chiffre d'affaires", f"{ca:,.0f} €")
