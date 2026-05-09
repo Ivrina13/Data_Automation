@@ -93,8 +93,6 @@ if len(date_range) == 2:
     ]
 
 # ── KPIs ──────────────────────────────────────────────────────────────────────
-st.subheader("Vue d'ensemble")
-
 ca      = dff["prix_clean"].sum()
 orders  = len(dff)
 basket  = ca / orders if orders > 0 else 0
@@ -103,6 +101,8 @@ clients = dff["identifiant_client"].nunique()
 loyalty = orders / clients if clients > 0 else 0
 
 st.title("📊 Business Monitoring Dashboard")
+st.subheader("Vue d'ensemble")
+
 st.markdown("🔗 [Voir mon GitHub](https://github.com/Ivrina13)")
 
 kpis = [
@@ -131,7 +131,7 @@ for col, (icon, label, value) in zip(cols, kpis):
 st.divider()
 
 # ── Jauges objectifs ──────────────────────────────────────────────────────────
-st.subheader("Objectifs")
+st.subheader("🎯 Objectifs")
 
 def gauge(title, val, target):
     pct = min((val / target) * 100, 100) if target else 0
