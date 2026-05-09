@@ -4,7 +4,7 @@ import plotly.graph_objects as go
 import plotly.express as px
 import requests
 
-# 1. Config & Look Pro (Style RSA / Clair)
+# 1. Config & Look Pro
 st.set_page_config(page_title="Data Automation", layout="wide")
 
 st.markdown("""
@@ -29,7 +29,7 @@ def send_slack(text):
 @st.cache_data
 def load_data():
     # Remplace par le nom EXACT de ton fichier sur GitHub
-    df = pd.read_csv('Business_Monitoring - donnée brute.csv')
+    df = pd.read_csv('data.csv')
     
     # Nettoyage de la colonne Prix (Enlever € et remplacer la virgule par un point)
     df['prix_clean'] = df['prix'].str.replace(' €', '').str.replace(',', '.').astype(float)
